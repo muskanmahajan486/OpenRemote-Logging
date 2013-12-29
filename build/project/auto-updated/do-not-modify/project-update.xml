@@ -105,6 +105,15 @@
 
     </get>
 
+    <mkdir dir = "${build.lib.dir}/testng-6.8"/>
+
+    <get dest = "${build.lib.dir}/testng-6.8" usetimestamp = "true">
+
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/testng-6.8/testng-6.8.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/testng-6.8/LICENSE.txt"/>
+
+    </get>
+
   </target>
 
 </project>
