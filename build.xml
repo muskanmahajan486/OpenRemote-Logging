@@ -44,5 +44,44 @@
 
   <import file = "build/project/auto-updated/do-not-modify/project-template.xml" as = "openremote-template"/>
 
+
+  <!--
+   | Default description of this project. The description below is displayed when then project
+   | is executed with a -\-projecthelp (or -p) argument.
+   |
+   | EDIT to give a more precise description of the project, if necessary.
+   +-->
+  <description>
+  -------------------------------------------------------------------
+  OpenRemote, the Home of the Digital Home.
+  Copyright 2008-2014, OpenRemote Inc.
+
+  This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Affero General Public License
+  as published by the Free Software Foundation; either version 3 of
+  the License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public
+  License along with this program; if not, see
+  http://www.gnu.org/licenses/.
+  -------------------------------------------------------------------
+
+  Build file to create project ${project.name}.
+
+  Run:
+
+    > sh project.sh --help
+
+  for details.
+
+
+  </description>
+
+
 </project>
 
