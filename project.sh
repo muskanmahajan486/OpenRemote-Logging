@@ -73,6 +73,13 @@ function printHelp()
   echo "         - Verbose output useful to troubleshoot build issues.";
   echo "";
   echo "";
+  echo "Create a 'local.properties' file in the root directory to override";
+  echo "any of the build properties for changes that are intended to be";
+  echo "kept local and not shared with others (via VCS for example) and";
+  echo "modify 'build.properties' file for properties that should be";
+  echo "changed permanently and shared with other users.";
+  echo "";
+  echo "";
 
   exit 0;
 }
