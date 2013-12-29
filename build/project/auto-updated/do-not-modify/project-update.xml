@@ -84,8 +84,9 @@
    +-->
   <target name = "update" description = "Updates this project setup" if = "project.file.path">
 
-    <mkdir dir = "src/main/java/org/openremote"/>
-    <mkdir dir = "src/test/java/org/openremote"/>
+    <mkdir dir = "${java.src.dir}/org/openremote"/>
+    <mkdir dir = "${java.test.src.dir}/org/openremote"/>
+    <mkdir dir = "${build.lib.dir}"/>
 
     <get dest = "${project.file.path}" usetimestamp = "true">
 
