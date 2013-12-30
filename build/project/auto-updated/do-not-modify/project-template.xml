@@ -113,6 +113,8 @@
 
     </echo>
 
+    <mkdir dir="${test.classes.dir}"/>
+
     <openremote:compile-java-unit-test/>
 
   </target>
@@ -127,6 +129,16 @@
    +-->
   <target name = "unit-test" depends = "-before-unit-test"
           description = "Executes project Java unit tests">
+
+    <openremote:run-java-unit-test/>
+
+    <makeurl file = "${unit.test.report.dir}" property = "unit.test.report.uri"/>
+
+    <echo>
+
+    UNIT TEST REPORT: ${unit.test.report.uri}
+
+    </echo>
 
   </target>
 
