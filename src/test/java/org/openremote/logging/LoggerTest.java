@@ -45,7 +45,9 @@ public class LoggerTest
     ERROR_HANDLER(TEST.getCanonicalLogHierarchyName() + ".errorhandler"),
     WARN_HANDLER(TEST.getCanonicalLogHierarchyName() + ".warnhandler"),
     INFO_HANDLER(TEST.getCanonicalLogHierarchyName() + ".infohandler"),
-    DEBUG_HANDLER(TEST.getCanonicalLogHierarchyName() + ".debughandler");
+    DEBUG_HANDLER(TEST.getCanonicalLogHierarchyName() + ".debughandler"),
+    TRACE_HANDLER(TEST.getCanonicalLogHierarchyName() + ".tracehandler");
+
 
     private String canonicalLogCategoryName;
 
@@ -262,12 +264,53 @@ public class LoggerTest
 
 
   /**
-   * TODO : trace not yet implemented
+   * Just simply run through the method invocations to make sure nothing is badly broken.
    */
   @Test public void testTraceMethod()
   {
-    throw new Error("Not Yet Implemented");
+    Logger log = Logger.getInstance(TestHierarchy.TEST);
 
+    TestLogHandler handler = new TestLogHandler();
+
+    // Add custom log handler -- don't delegate to parent handlers to avoid unneccessary
+    // debug logging caused by these tests. Make sure the FINER level is enabled in the
+    // logDelegate so the messages go through to the handler.
+
+    log.logDelegate.addHandler(handler);
+    log.logDelegate.setLevel(Level.FINER);
+    log.logDelegate.setUseParentHandlers(false);
+
+
+    // Assert the last log message was recorded (at level FINER)...
+
+    log.trace("Test message");
+
+    handler.assertLastLog(Level.FINER, "Test message");
+
+
+    // Assert the last log message parameters were passed correctly...
+
+    log.trace("Test {0} message", "this");
+
+    handler.assertLastLog(Level.FINER, "Test this message");
+
+
+    // Assert last log message cause...
+
+    RuntimeException re = new RuntimeException("log trace testing");
+
+    log.trace("test message", re);
+
+    handler.assertLastLog(Level.FINER, "test message", re);
+
+
+    // Assert all args...
+
+    re = new RuntimeException("log trace testing 2");
+
+    log.trace("test {0} message with {1}", re, "trace", this.getClass());
+
+    handler.assertLastLog(Level.FINER, "test trace message with " + this.getClass(), re);
   }
   
 
@@ -277,6 +320,11 @@ public class LoggerTest
   @Test public void testNullArgsError()
   {
     Logger log = Logger.getInstance(TestHierarchy.TEST);
+
+    // Don't delegate to parent handlers to avoid unnecessary
+    // error logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
 
     log.error(null);
 
@@ -302,6 +350,11 @@ public class LoggerTest
   {
     Logger log = Logger.getInstance(TestHierarchy.TEST);
 
+    // Don't delegate to parent handlers to avoid unnecessary
+    // warn logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
+
     log.warn(null);
 
     log.warn(null, new Object[] {null, null});
@@ -325,6 +378,11 @@ public class LoggerTest
   @Test public void testNullArgsInfo()
   {
     Logger log = Logger.getInstance(TestHierarchy.TEST);
+
+    // Don't delegate to parent handlers to avoid unnecessary
+    // info logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
 
     log.info(null);
 
@@ -351,6 +409,11 @@ public class LoggerTest
   {
     Logger log = Logger.getInstance(TestHierarchy.TEST);
 
+    // Don't delegate to parent handlers to avoid unnecessary
+    // debug logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
+
     log.debug(null);
 
     log.debug(null, new Object[] {null, null});
@@ -368,6 +431,34 @@ public class LoggerTest
     log.debug(null, "debug", "arg");
   }
 
+  /**
+   * Test behavior with null args on logger trace facade.
+   */
+  @Test public void testNullArgsTrace()
+  {
+    Logger log = Logger.getInstance(TestHierarchy.TEST);
+
+    // Don't delegate to parent handlers to avoid unnecessary
+    // trace logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
+
+    log.trace(null);
+
+    log.trace(null, new Object[] {null, null});
+
+    log.trace("Test trace {0} and {1}", new Object[] {null, null});
+
+    log.trace(null, new RuntimeException("test trace null args"));
+
+    log.trace(null, null, "arg");
+
+    log.trace(null, new RuntimeException("test tracing null args"), (Object[])null);
+
+    log.trace("trace msg", (Exception)null);
+
+    log.trace(null, "trace", "arg");
+  }
 
   /**
    * Test behavior with null args on logger debug facade.
@@ -380,8 +471,10 @@ public class LoggerTest
     log.warn("Test warn {0, foo} and {1, bar}", null, 1);
     log.info("Test debug {0, number} and {1, number, percentage}", "foo", "bar");
     log.debug("Test debug {0}", "foo", "bar");
+    log.trace("Test trace", "foo", new Error("funky trace"));
   }
 
+  // TODO : test null arg on throwable
 
 
   /**
@@ -455,6 +548,23 @@ public class LoggerTest
     handler.assertLastLog(Level.FINE, "Test debug foo, bar");
   }
 
+  /**
+   * Tests mapping of trace logging to JUL levels.
+   */
+  @Test public void testTraceMapping()
+  {
+    Logger log = Logger.getInstance(TestHierarchy.TRACE_HANDLER);
+    TestLogHandler handler = new TestLogHandler();
+
+    log.logDelegate.addHandler(handler);
+    log.logDelegate.setLevel(Level.ALL);
+
+    String msg = "Test trace {0}, {1}";
+
+    log.trace(msg, "foo", "bar");
+
+    handler.assertLastLog(Level.FINER, "Test trace foo, bar");
+  }
 
 
   // Nested Classes -------------------------------------------------------------------------------
