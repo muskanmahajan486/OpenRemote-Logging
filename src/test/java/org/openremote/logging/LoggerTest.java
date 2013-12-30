@@ -103,6 +103,7 @@ public class LoggerTest
     // Assert all args...
 
     re = new RuntimeException("log error testing 2");
+
     log.error("test {0} message with {1}", re, "error", this.getClass());
 
     handler.assertLastLog(Level.SEVERE, "test error message with " + this.getClass(), re);
@@ -118,26 +119,45 @@ public class LoggerTest
 
     TestLogHandler handler = new TestLogHandler();
 
+
+    // Add custom log handler -- don't delegate to parent handlers to avoid unneccessary
+    // warn logging caused by these tests...
+
     log.logDelegate.addHandler(handler);
+    log.logDelegate.setUseParentHandlers(false);
+
+
+     // Assert the last log message was recorded (at level WARNING)...
 
     log.warn("Test message");
 
     handler.assertLastLog(Level.WARNING, "Test message");
 
+
+    // Assert the last log message parameters were passed correctly...
+
     log.warn("Test {0} message", "this");
 
     handler.assertLastLog(Level.WARNING, "Test this message");
 
-    log.warn("test message", new RuntimeException("log warn testing"));
 
-    handler.assertLastLog(Level.WARNING, "test message");
+    // Assert last log message cause...
 
-    log.warn("test {0} message with {1}", new RuntimeException("log warn testing"), "warn", this.getClass());
+    RuntimeException re = new RuntimeException("log warn testing");
 
-    handler.assertLastLog(Level.WARNING, "test warn message with " + this.getClass());
+    log.warn("test message", re);
+
+    handler.assertLastLog(Level.WARNING, "test message", re);
+
+
+    // Assert all args...
+
+    re = new RuntimeException("log warn testing 2");
+
+    log.warn("test {0} message with {1}", re, "warn", this.getClass());
+
+    handler.assertLastLog(Level.WARNING, "test warn message with " + this.getClass(), re);
   }
-
-
 
 
   /**
@@ -149,23 +169,44 @@ public class LoggerTest
 
     TestLogHandler handler = new TestLogHandler();
 
+
+    // Add custom log handler -- don't delegate to parent handlers to avoid unneccessary
+    // info logging caused by these tests...
+
     log.logDelegate.addHandler(handler);
+    log.logDelegate.setUseParentHandlers(false);
+
+
+    // Assert the last log message was recorded (at level INFO)...
 
     log.info("Test message");
 
     handler.assertLastLog(Level.INFO, "Test message");
 
+
+    // Assert the last log message parameters were passed correctly...
+
     log.info("Test {0} message", "this");
 
     handler.assertLastLog(Level.INFO, "Test this message");
 
-    log.info("test message", new RuntimeException("log info testing"));
 
-    handler.assertLastLog(Level.INFO, "test message");
+    // Assert last log message cause...
 
-    log.info("test {0} message with {1}", new RuntimeException("log info testing"), "info", this.getClass());
+    RuntimeException re = new RuntimeException("log info testing");
 
-    handler.assertLastLog(Level.INFO, "test info message with " + this.getClass());
+    log.info("test message", re);
+
+    handler.assertLastLog(Level.INFO, "test message", re);
+
+
+    // Assert all args...
+
+    re = new RuntimeException("log info testing 2");
+
+    log.info("test {0} message with {1}", re, "info", this.getClass());
+
+    handler.assertLastLog(Level.INFO, "test info message with " + this.getClass(), re);
   }
 
 
@@ -178,24 +219,45 @@ public class LoggerTest
 
     TestLogHandler handler = new TestLogHandler();
 
+    // Add custom log handler -- don't delegate to parent handlers to avoid unneccessary
+    // debug logging caused by these tests. Make sure the FINE level is enabled in the
+    // logDelegate so the messages go through to the handler.
+
     log.logDelegate.addHandler(handler);
     log.logDelegate.setLevel(Level.FINE);
-    
+    log.logDelegate.setUseParentHandlers(false);
+
+
+    // Assert the last log message was recorded (at level FINE)...
+
     log.debug("Test message");
 
     handler.assertLastLog(Level.FINE, "Test message");
+
+
+    // Assert the last log message parameters were passed correctly...
 
     log.debug("Test {0} message", "this");
 
     handler.assertLastLog(Level.FINE, "Test this message");
 
-    log.debug("test message", new RuntimeException("log debug testing"));
 
-    handler.assertLastLog(Level.FINE, "test message");
+    // Assert last log message cause...
 
-    log.debug("test {0} message with {1}", new RuntimeException("log debug testing"), "debug", this.getClass());
+    RuntimeException re = new RuntimeException("log debug testing");
 
-    handler.assertLastLog(Level.FINE, "test debug message with " + this.getClass());
+    log.debug("test message", re);
+
+    handler.assertLastLog(Level.FINE, "test message", re);
+
+
+    // Assert all args...
+
+    re = new RuntimeException("log debug testing 2");
+
+    log.debug("test {0} message with {1}", re, "debug", this.getClass());
+
+    handler.assertLastLog(Level.FINE, "test debug message with " + this.getClass(), re);
   }
 
 
