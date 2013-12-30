@@ -134,15 +134,21 @@
 
     <makeurl file = "${unit.test.report.dir}" property = "unit.test.report.uri"/>
 
-    <echo>
-
-    UNIT TEST REPORT: ${unit.test.report.uri}
-
-    </echo>
+    <antcall target = "-print-unit-test-report-location"/>
 
   </target>
 
   <extension-point name = "-before-unit-test" depends = "-unit-test-compile"/>
+
+  <target name="-print-unit-test-report-location" if = "java.unit.test.failure">
+
+    <echo>
+
+    UNIT TEST REPORT: ${unit.test.report.uri}/index.html
+
+    </echo>
+
+  </target>
 
 </project>
 

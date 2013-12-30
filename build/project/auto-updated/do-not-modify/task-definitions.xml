@@ -95,8 +95,10 @@
     <sequential>
       <internal:testng
               classpathref = "java.test.run.classpath"
-              outputDir = "${unit.test.report.dir}">
-
+              outputDir = "${unit.test.report.dir}"
+              failureProperty = "java.unit.test.failure"
+              suitename = "${project.name} Tests">
+              
         <classfileset dir = "${test.classes.dir}" includes = "**/*.class"/>
 
       </internal:testng>
