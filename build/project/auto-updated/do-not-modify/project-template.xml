@@ -28,6 +28,7 @@
  |
  |    - compile             compiles all Java classes
  |    - unit-test           executes all Java unit tests
+ |    - clean               removes all generated files
  |
  |
  |  The main build file which imports this template may extend the functionality by adding
@@ -140,13 +141,27 @@
 
   <extension-point name = "-before-unit-test" depends = "-unit-test-compile"/>
 
-  <target name="-print-unit-test-report-location" if = "java.unit.test.failure">
+  <target name = "-print-unit-test-report-location" if = "java.unit.test.failure">
 
     <echo>
 
     UNIT TEST REPORT: ${unit.test.report.uri}/index.html
 
     </echo>
+
+  </target>
+
+
+  <!--
+   | CLEAN:
+   |
+   | Deletes all generated files of this project. Public project target.
+   +-->
+  <target name = "clean" description = "Deletes generated files in this project.">
+
+    <delete dir = "${build.test.dir}"/>
+    <delete dir = "${classes.dir}"/>
+    <delete dir = "${output.dir}"/>
 
   </target>
 

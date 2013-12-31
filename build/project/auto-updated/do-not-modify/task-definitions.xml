@@ -98,7 +98,7 @@
               outputDir = "${unit.test.report.dir}"
               failureProperty = "java.unit.test.failure"
               suitename = "${project.name} Tests">
-              
+
         <classfileset dir = "${test.classes.dir}" includes = "**/*.class"/>
 
       </internal:testng>
