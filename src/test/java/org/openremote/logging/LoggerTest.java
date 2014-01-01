@@ -476,6 +476,8 @@ public class LoggerTest
 
   // TODO : test null arg on throwable
 
+  // TODO test a broken handler that throws on publish()
+
 
   /**
    * Tests mapping of error logging to JUL levels.
@@ -569,7 +571,9 @@ public class LoggerTest
 
   // Nested Classes -------------------------------------------------------------------------------
 
-
+  /**
+   * Custom log handler for testing, tracks last logged message and performs assertions.
+   */
   private static class TestLogHandler extends Handler
   {
     private Level lastLevel;
@@ -633,10 +637,6 @@ public class LoggerTest
       Assert.assertTrue(t.getMessage().equals(lastCause.getMessage()));
     }
   }
-
-
-  // TODO test a broken handler that throws on publish()
-
   
 }
 
