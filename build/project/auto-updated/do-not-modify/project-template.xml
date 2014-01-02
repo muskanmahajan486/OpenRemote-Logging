@@ -93,7 +93,12 @@
     </echo>
 
     <!-- Make sure we have a target directory for our compiled classes... -->
+
     <mkdir dir = "${classes.dir}"/>
+
+    <!-- And ensure build/lib dir exists, even if not used, to avoid some errors... -->
+
+    <mkdir dir = "${build.lib.dir}"/>
 
     <openremote:compile-java/>
 

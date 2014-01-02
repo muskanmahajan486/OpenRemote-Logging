@@ -29,7 +29,11 @@
 <project name = "OpenRemote Project Task Definitions" basedir = "."
          xmlns:internal = "namespace://build.repository.openremote.org/project/tasks/internal">
 
-  <property file = "default.properties"/>
+  <!--
+   | Helper property to keep track of where TestNG libraris are located.
+   +-->
+  <property name = "testng.path" value = "${project.file.path}/lib/testng-6.8"/>
+
 
   <!--
    | INTERNAL TASK DEFINITIONS
@@ -52,7 +56,7 @@
   <!-- Internal definitions for TestNG tasks... -->
 
   <taskdef resource = "testngtasks" uri = "namespace://build.repository.openremote.org/project/tasks/internal"
-           classpath = "${build.lib.dir}/testng-6.8/testng-6.8.jar"/>
+           classpath = "${testng.path}/testng-6.8.jar"/>
 
 
   <!--
@@ -114,16 +118,51 @@
 
 
   <!--
-   | Classpath to compile Java unit tests. Includes the compiled project classes and
-   | TestNG framework libraries.
+   | Classpath to compile project Java classes. Includes all jars that are placed in the
+   | build/lib directory and in the project lib directory. Additional locations may be
+   | added by defining a path reference 'java.compile.classpath'.
    +-->
-  <path id = "java.test.compile.classpath">
+  <path id = "default.java.compile.classpath">
+
+    <!-- User defined classpath in build.xml -->
+
+    <path refid = "java.compile.classpath"/>
+
+    <!-- By default automatically include all jars that are placed under build/lib directory -->
+
+    <fileset dir = "${build.lib.dir}">
+      <include name = "**/*.jar"/>
+    </fileset>
+
+    <!-- By default automatically include all jars that are placed under project lib directory -->
+
+    <fileset dir = "${lib.dir}">
+      <include name = "**/*.jar"/>
+    </fileset>
+
+  </path>
+
+  <!--
+   | Classpath to compile Java unit tests. Includes the classpath used to compile the project,
+   | the compiled project classes and TestNG framework libraries.
+   +-->
+  <path id = "default.java.test.compile.classpath">
+
+    <!-- The full classpath used to compile classes -->
+
+    <path refid = "default.java.compile.classpath"/>
+
+    <!-- User defined classpath for unit test compilation in build.xml -->
+
+    <path refid = "java.test.compile.classpath"/>
 
     <!-- Compiled project classes... -->
+
     <pathelement path = "${classes.dir}"/>
 
     <!-- TestNG classes... -->
-    <pathelement path = "${build.lib.dir}/testng-6.8/testng-6.8.jar"/>
+
+    <pathelement path = "${testng.path}/testng-6.8.jar"/>
 
   </path>
 

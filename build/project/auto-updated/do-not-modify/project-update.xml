@@ -84,9 +84,16 @@
    +-->
   <target name = "update" description = "Updates this project setup" if = "project.file.path">
 
+    <property name = "testng.path"    value = "${project.file.path}/lib/testng-6.8"/>
+    <property name = "cobertura.path" value = "${project.file.path}/lib/cobertura-2.0.3"/>
+
     <mkdir dir = "${java.src.dir}/org/openremote"/>
     <mkdir dir = "${java.test.src.dir}/org/openremote"/>
     <mkdir dir = "${build.lib.dir}"/>
+
+    <echo>
+    &gt;&gt; Updating project templates...
+    </echo>
 
     <get dest = "${project.file.path}" usetimestamp = "true">
 
@@ -105,12 +112,53 @@
 
     </get>
 
-    <mkdir dir = "${build.lib.dir}/testng-6.8"/>
 
-    <get dest = "${build.lib.dir}/testng-6.8" usetimestamp = "true">
+    <echo>
+    &gt;&gt; Updating TestNG libraries...
+    </echo>
+
+    <mkdir dir = "${testng.path}"/>
+
+    <get dest = "${testng.path}" usetimestamp = "true">
 
       <url url = "${build.repository.uri}/project/${project.name}/build/lib/testng-6.8/testng-6.8.jar"/>
       <url url = "${build.repository.uri}/project/${project.name}/build/lib/testng-6.8/LICENSE.txt"/>
+
+    </get>
+
+
+    <echo>
+    &gt;&gt; Updating Cobertura libraries...
+    </echo>
+
+    <mkdir dir = "${cobertura.path}"/>
+    <mkdir dir = "${cobertura.path}/lib"/>
+
+    <get dest = "${cobertura.path}" usetimestamp = "true">
+
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/cobertura-2.0.3.jar"/>
+
+    </get>
+
+    <get dest = "${cobertura.path}/lib" usetimestamp = "true">
+
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/asm-4.1.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/asm-analysis-4.1.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/asm-commons-4.1.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/asm-tree-4.1.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/asm-util-4.1.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/dom4j-1.6.1.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/icu4j-2.6.1.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/jaxen-1.1-beta-8.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/jdom-1.0.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/jetty-6.1.14.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/jetty-util-6.1.14.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/log4j-1.2.9.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/oro-2.0.8.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/servlet-api-2.5-6.1.14.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/tagsoup-0.9.7.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/xmlParserAPIs-2.6.2.jar"/>
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/xom-1.0b3.jar"/>
 
     </get>
 
