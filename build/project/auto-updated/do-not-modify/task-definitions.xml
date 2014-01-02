@@ -30,9 +30,14 @@
          xmlns:internal = "namespace://build.repository.openremote.org/project/tasks/internal">
 
   <!--
-   | Helper property to keep track of where TestNG libraris are located.
+   | Helper property to keep track of where TestNG libraries are located.
    +-->
   <property name = "testng.path" value = "${project.file.path}/lib/testng-6.8"/>
+
+  <!--
+   | Helper property to keep track of where Cobertura libraries are located.
+   +-->
+  <property name = "cobertura.path" value = "${project.file.path}/lib/cobertura-2.0.3"/>
 
 
   <!--
@@ -57,6 +62,27 @@
 
   <taskdef resource = "testngtasks" uri = "namespace://build.repository.openremote.org/project/tasks/internal"
            classpath = "${testng.path}/testng-6.8.jar"/>
+
+  <!-- Internal definitions for Cobertura tasks... -->
+
+  <path id = "cobertura.classpath">
+
+    <fileset dir = "${cobertura.path}">
+
+      <!-- Main Cobertura library... -->
+
+      <include name = "cobertura-2.0.3.jar"/>
+
+      <!-- All Cobertura dependencies from separate lib directory... -->
+
+      <include name = "lib/*.jar"/>
+
+    </fileset>
+
+  </path>
+
+  <taskdef resource = "tasks.properties" uri = "namespace://build.repository.openremote.org/project/tasks/internal"
+           classpathref = "cobertura.classpath" />
 
 
   <!--
@@ -86,7 +112,7 @@
     <internal:compile
             srcdir  = "${test.src.dir}/java"
             destdir = "${test.classes.dir}"
-            classpathref = "java.test.compile.classpath"/>
+            classpathref = "default.java.test.compile.classpath"/>
 
   </presetdef>
 
@@ -97,15 +123,40 @@
   <macrodef name = "run-java-unit-test" uri = "namespace://build.repository.openremote.org/project/tasks">
 
     <sequential>
+
+      <internal:cobertura-instrument
+          todir = "${build.test.dir}/instrumented-classes"
+          datafile = "${build.test.dir}/instrumented-classes/cobertura-coverage.ser">
+
+        <fileset dir = "${classes.dir}">
+          <include name = "**/*.class"/>
+        </fileset>
+
+      </internal:cobertura-instrument>
+
       <internal:testng
-              classpathref = "java.test.run.classpath"
-              outputDir = "${unit.test.report.dir}"
-              failureProperty = "java.unit.test.failure"
-              suitename = "${project.name} Tests">
+          classpathref = "java.test.run.classpath"
+          outputDir = "${unit.test.report.dir}"
+          failureProperty = "java.unit.test.failure"
+          suitename = "${project.name} Tests">
 
         <classfileset dir = "${test.classes.dir}" includes = "**/*.class"/>
 
+        <!-- Where to locate Cobertura coverage data file... -->
+
+        <sysproperty key = "net.sourceforge.cobertura.datafile"
+        		         file = "${build.test.dir}/instrumented-classes/cobertura-coverage.ser" />
+
       </internal:testng>
+
+      <!-- Create Cobertura unit test coverage report... -->
+
+      <internal:cobertura-report
+          destdir = "${build.test.dir}/coverage-report"
+          datafile = "${build.test.dir}/instrumented-classes/cobertura-coverage.ser"
+          srcdir = "${java.src.dir}"
+          encoding = "UTF-8"/>
+
     </sequential>
 
   </macrodef>
@@ -171,11 +222,21 @@
    +-->
   <path id = "java.test.run.classpath">
 
+    <!-- Instrumented classes must come first in the search order... -->
+
+    <pathelement path = "${build.test.dir}/instrumented-classes"/>
+
     <!-- All classes required to compile tests... -->
-    <path refid = "java.test.compile.classpath"/>
+
+    <path refid = "default.java.test.compile.classpath"/>
 
     <!-- Compiled Java unit test classes -->
+
     <pathelement path = "${test.classes.dir}"/>
+
+    <!-- Cobertura classes are required to execute the test suite... -->
+
+    <path refid = "cobertura.classpath"/>
 
   </path>
 

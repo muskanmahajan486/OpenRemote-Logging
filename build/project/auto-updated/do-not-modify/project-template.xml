@@ -96,9 +96,11 @@
 
     <mkdir dir = "${classes.dir}"/>
 
-    <!-- And ensure build/lib dir exists, even if not used, to avoid some errors... -->
+    <!-- And ensure lib and build/lib directories exists, even if not used,
+         to avoid some errors... -->
 
     <mkdir dir = "${build.lib.dir}"/>
+    <mkdir dir = "${lib.dir}"/>
 
     <openremote:compile-java/>
 
