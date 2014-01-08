@@ -56,6 +56,11 @@ function printHelp()
   echo "";
   echo "         - Updates this project build template.";
   echo "";
+  echo "    sh project.sh update-complete";
+  echo "";
+  echo "         - Updates project including Java runtime libraries";
+  echo "           required for cross-compiling.";
+  echo "";
   echo "    sh project.sh [-p, -projecthelp]";
   echo "";
   echo "         - Lists all available project build targets.";
@@ -88,7 +93,7 @@ if [ "$1" == "help" -o "$1" == "-h" -o "$1" == "--help" ]; then
   printHelp;
 fi
 
-if [ "$1" == "update" ]; then
+if [ "$1" == "update" -o "$1" == "update-complete" ]; then
   ant -f build/project/auto-updated/do-not-modify/project-update.xml $@
 else
   ant -f build.xml $@;
