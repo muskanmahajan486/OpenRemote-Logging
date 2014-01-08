@@ -81,7 +81,7 @@
    |
    | Compiles all Java classes of this project. Public project target.
    +-->
-  <target name = "compile" depends = "-before-compile"
+  <target name = "compile" depends = "-before-compile, -check-cross-compile-runtime"
           description = "Compiles all project Java classes.">
 
     <echo>
@@ -107,6 +107,44 @@
   </target>
 
   <extension-point name = "-before-compile"/>
+
+  <target name = "-check-cross-compile-runtime">
+
+    <local name = "runtime.directory"/>
+    <openremote:propertycopy name = "runtime.directory"
+                             from = "java.${java.target.version}.runtime.directory"/>
+
+    <condition property = "java.${java.target.version}.runtime.available">
+      <or>
+        <contains string = "${java.version}" substring = "${java.target.version}"/>
+        <available file = "${java.runtime.path}/${runtime.directory}/rt.jar"/>
+      </or>
+    </condition>
+
+    <antcall target = "-warn-cross-compile"/>
+
+  </target>
+
+  <target name = "-warn-cross-compile" unless = "java.${java.target.version}.runtime.available">
+
+    <echo level = "warning">
+    WARNING:
+
+      Project has been configured to target Java version ${java.target.version}. You are
+      compiling with JDK version ${java.version}. A successful cross-compile to ${java.target.version}
+      requires JRE ${java.target.version} runtime libraries to be set in Java compiler's boot
+      classpath.
+
+      Install Java runtime libraries by executing 'sh project.sh update-complete' on the command
+      line. Alternatively, configure 'java.runtime.path' and 'java.${java.target.version}.runtime.directory'
+      properties in a 'local.properties' file (create a new file if one doesn't exist) to point
+      to an existing JDK ${java.target.version} or JRE ${java.target.version} installation that contains the
+      required runtime libraries.
+
+      Correct Java runtime libraries MUST be configured before this project can be released.
+    </echo>
+
+  </target>
 
   <!--
    | Compiles all Java unit test classes of this project.
@@ -158,6 +196,32 @@
 
   </target>
 
+
+
+  <!--
+   | RELEASE:
+   |
+   | Builds a full project release. Public project target.
+   +-->
+  <target name = "release" description = "Builds a full project release."
+          depends = "clean, -ensure-cross-compile-runtime">
+
+  </target>
+
+  <target name = "-ensure-cross-compile-runtime" depends = "-check-cross-compile-runtime">
+
+    <local name = "local-java-runtime"/>
+    <openremote:propertycopy name = "local-java-runtime" from = "java.${java.target.version}.runtime.available"/>
+
+    <condition property = "x-compile-error">
+      <equals arg1 = "${local-java-runtime}" arg2 = "true"/>
+    </condition>
+
+    <fail unless = "x-compile-error">
+      RELEASE FAILED. Required Java ${java.target.version} runtime libraries cannot be found.
+    </fail>
+
+  </target>
 
   <!--
    | CLEAN:

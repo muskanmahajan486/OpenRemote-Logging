@@ -29,16 +29,6 @@
 <project name = "OpenRemote Project Task Definitions" basedir = "."
          xmlns:internal = "namespace://build.repository.openremote.org/project/tasks/internal">
 
-  <!--
-   | Helper property to keep track of where TestNG libraries are located.
-   +-->
-  <property name = "testng.path" value = "${project.file.path}/lib/testng-6.8"/>
-
-  <!--
-   | Helper property to keep track of where Cobertura libraries are located.
-   +-->
-  <property name = "cobertura.path" value = "${project.file.path}/lib/cobertura-2.0.3"/>
-
 
   <!--
    | INTERNAL TASK DEFINITIONS
@@ -47,15 +37,36 @@
    | namespace://build.repository.openremote.org/project/tasks/internal
    +-->
 
-  <!-- Internal configuration for Javac that can be shared with all compile related tasks... -->
+  <!-- Internal configuration for Javac that can be shared with all compile related tasks.
+       This one will handle cross-compiles to older Java versions as well. -->
 
   <presetdef name = "compile" uri = "namespace://build.repository.openremote.org/project/tasks/internal">
+
+    <!--
+
+         Note:
+           the bootclasspath attribute in Ant 1.9.2 doesn't seem to catch (is being ignored)
+           which strongly feels like a bug. But bootclasspathref works fine, and uses
+           the -bootclasspath attribute which is a bit more portable than -Xbootclasspath
+
+           Also the XML quotes in extdirs attribute are necessary, otherwise Ant omits the
+           -extdirs option altogether when invoking javac. The empty extdirs is used to ensure
+           no unexpected extensions are picked up by the cross-compile.
+
+    -->
+
     <javac
       encoding = "UTF-8"
-      target   = "1.6"
+      target   = "${java.target.version}"
+      source   = "${java.target.version}"
       debug    = "true"
       includeantruntime = "false"
-      listfiles = "true"/>
+      bootclasspathref  = "java.crosscompile.version.${java.target.version}"
+      extdirs  = "&quot;&quot;"
+      listfiles = "true">
+
+    </javac>
+
   </presetdef>
 
   <!-- Internal definitions for TestNG tasks... -->
@@ -83,6 +94,8 @@
 
   <taskdef resource = "tasks.properties" uri = "namespace://build.repository.openremote.org/project/tasks/internal"
            classpathref = "cobertura.classpath" />
+
+
 
 
   <!--
@@ -157,6 +170,19 @@
           srcdir = "${java.src.dir}"
           encoding = "UTF-8"/>
 
+    </sequential>
+
+  </macrodef>
+
+
+  <!-- Public helper macro for nested property expansion (from Ant FAQ)... -->
+
+  <macrodef name = "propertycopy" uri = "namespace://build.repository.openremote.org/project/tasks">
+    <attribute name = "name"/>
+    <attribute name = "from"/>
+
+    <sequential>
+      <property name="@{name}" value="${@{from}}"/>
     </sequential>
 
   </macrodef>
@@ -237,6 +263,13 @@
     <!-- Cobertura classes are required to execute the test suite... -->
 
     <path refid = "cobertura.classpath"/>
+
+  </path>
+
+
+  <path id = "java.crosscompile.version.1.6">
+
+    <pathelement path = "${java.runtime.path}/${java.1.6.runtime.directory}/rt.jar"/>
 
   </path>
 

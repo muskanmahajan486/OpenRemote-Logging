@@ -28,7 +28,8 @@
  |
  |  Author: Juha Lindfors (juha@openremote.org)
  +-->
-<project name ="OpenRemote Project Update" basedir = "../../../.." default = "update">
+<project name ="OpenRemote Project Update" basedir = "../../../.." default = "update"
+         xmlns:openremote = "namespace://build.repository.openremote.org/project/tasks">
 
   <!--
    | Load local properties overriding other properties for values that
@@ -51,6 +52,15 @@
    +-->
   <property file = "${project.file.path}/default.properties"/>
 
+  <!--
+   | Resolve the directory path of an imported build file...
+   +-->
+  <dirname property = "import.basedir" file = "${ant.file.OpenRemote Project Update}"/>
+
+  <!--
+   | Import customized tasks...
+   +-->
+  <import file = "${import.basedir}/task-definitions.xml" as = "openremote-tasks"/>
 
   <!--
    | Initialize preconditions. At minimum the properties 'project.file.path',
@@ -84,9 +94,6 @@
    +-->
   <target name = "update" description = "Updates this project setup" if = "project.file.path">
 
-    <property name = "testng.path"    value = "${project.file.path}/lib/testng-6.8"/>
-    <property name = "cobertura.path" value = "${project.file.path}/lib/cobertura-2.0.3"/>
-
     <mkdir dir = "${java.src.dir}/org/openremote"/>
     <mkdir dir = "${java.test.src.dir}/org/openremote"/>
     <mkdir dir = "${build.lib.dir}"/>
@@ -119,7 +126,7 @@
 
     <mkdir dir = "${testng.path}"/>
 
-    <get dest = "${testng.path}" usetimestamp = "true">
+    <get dest = "${testng.path}" usetimestamp = "true" verbose = "true">
 
       <url url = "${build.repository.uri}/project/${project.name}/build/lib/testng-6.8/testng-6.8.jar"/>
       <url url = "${build.repository.uri}/project/${project.name}/build/lib/testng-6.8/LICENSE.txt"/>
@@ -134,13 +141,14 @@
     <mkdir dir = "${cobertura.path}"/>
     <mkdir dir = "${cobertura.path}/lib"/>
 
-    <get dest = "${cobertura.path}" usetimestamp = "true">
+    <get dest = "${cobertura.path}" usetimestamp = "true" verbose = "true">
 
+      <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/LICENSE.txt"/>
       <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/cobertura-2.0.3.jar"/>
 
     </get>
 
-    <get dest = "${cobertura.path}/lib" usetimestamp = "true">
+    <get dest = "${cobertura.path}/lib" usetimestamp = "true" verbose = "true">
 
       <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/asm-4.1.jar"/>
       <url url = "${build.repository.uri}/project/${project.name}/build/lib/cobertura-2.0.3/lib/asm-analysis-4.1.jar"/>
@@ -163,5 +171,89 @@
     </get>
 
   </target>
+
+
+  <!--
+   | UPDATE-COMPLETE:
+   |
+   | Downloads Java runtime libraries required to cross-compile to older Java versions.
+   +-->
+  <target name = "update-complete"
+          description = "Updates this project with Java runtime libraries required by cross-compiler"
+          depends = "update">
+
+    <property name = "absolute.basedir" location = "${basedir}"/>
+    <property name = "absolute.java.runtime.path" location = "${java.runtime.path}"/>
+
+    <condition property = "path.within.project">
+      <contains string = "${absolute.java.runtime.path}" substring = "${absolute.basedir}"/>
+    </condition>
+
+    <openremote:propertycopy
+        name = "target.java.runtime.dir"
+        from = "java.${java.target.version}.runtime.directory"/>
+
+    <antcall target = "-check-java-runtime-path"/>
+    <antcall target = "-download-java-runtime"/>
+
+  </target>
+
+  <!--
+   | Checks if the -download-java-runtime target should proceed...
+   +-->
+  <target name = "-download-java-runtime-check">
+    <condition property="download.java.runtime.run">
+      <or>
+        <istrue value = "${path.within.project}"/>
+        <istrue value = "${download.java.runtime}"/>
+      </or>
+    </condition>
+  </target>
+
+  <!--
+   | Downloads the runtime libs if -download-java-runtime-check passes...
+   +-->
+  <target name = "-download-java-runtime" depends = "-download-java-runtime-check"
+          if = "download.java.runtime.run">
+
+    <mkdir dir = "${java.runtime.path}/${target.java.runtime.dir}"/>
+
+    <echo>
+    &gt;&gt; Downloading Java 1.6 runtime libraries...
+    </echo>
+
+    <get dest = "${java.runtime.path}/${target.java.runtime.dir}"
+         usetimestamp = "true"
+         verbose = "true">
+
+      <url url = "${build.repository.uri}/project/java/java-${java.target.version}/openjdk-6-jre-headless_6b27/copyright"/>
+      <url url = "${build.repository.uri}/project/java/java-${java.target.version}/openjdk-6-jre-headless_6b27/rt.jar"/>
+
+    </get>
+
+  </target>
+
+  <!--
+   | If Java runtime has been configured outside the project paths, make sure the user intends
+   | to replace them, so we don't accidentally override system installation files.
+   +-->
+  <target name = "-check-java-runtime-path" unless = "path.within.project">
+
+    <input addproperty = "ask.java.runtime.install"
+           validargs = "y,n"
+           defaultvalue = "n">
+      Java runtime has been configured to ${absolute.java.runtime.path}/${target.java.runtime.dir}.
+
+      Are you sure you want to download to this location [y/N] ?
+    </input>
+
+    <condition property = "download.java.runtime">
+      <equals arg1 = "${ask.java.runtime.install}" arg2 = "y"/>
+    </condition>
+
+    <antcall target = "-download-java-runtime"/>
+
+  </target>
+
 
 </project>
