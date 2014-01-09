@@ -25,6 +25,12 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.StringWriter;
+import java.net.URI;
 import java.util.Enumeration;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -76,11 +82,6 @@ public class LogServiceTest
     CustomLogService fc = new CustomLogService();
 
     Assert.assertTrue(fc.logDelegate instanceof LogService.Provider);
-
-    // Don't delegate to parent handlers to avoid unneccessary
-    // error logging caused by these tests...
-
-    fc.logDelegate.setUseParentHandlers(false);
 
     fc.alert("danger!");
 
@@ -137,7 +138,7 @@ public class LogServiceTest
 
     cf.setApplicationHierarchy("Foo");
 
-    cf.addLogger(cf);
+    cf.register();
 
     Assert.assertTrue(cf.getHierarchy().getCanonicalLogHierarchyName().startsWith(
         LogService.DEFAULT_ROOT_LOG_HIERARCHY.getCanonicalLogHierarchyName())
@@ -209,11 +210,216 @@ public class LogServiceTest
     Assert.fail("Did not find logger 'OpenRemote.test-432251122'");
   }
 
+  /**
+   * Basic check for non-registering constructor to make sure the registration only
+   * happens when explicily requested
+   */
+  @Test public void testLogBeforeRegistration()
+  {
+    NamedLogService log = new NamedLogService("test-423552311", false);
 
+    Enumeration<String> names = LogManager.getLogManager().getLoggerNames();
+
+    while (names.hasMoreElements())
+    {
+      String name = names.nextElement();
+
+      if (name.equals(LogService.DEFAULT_ROOT_LOG_HIERARCHY + ".test-423552311"))
+      {
+        Assert.fail("Should not have registered logger 'OpenRemote.test-423552311");
+      }
+    }
+
+    log.register();
+
+    names = LogManager.getLogManager().getLoggerNames();
+
+    while (names.hasMoreElements())
+    {
+      String name = names.nextElement();
+
+      if (name.equals(LogService.DEFAULT_ROOT_LOG_HIERARCHY + ".test-423552311"))
+      {
+        return;
+      }
+    }
+
+    Assert.fail("Did not find logger 'OpenRemote.test-423552311'");
+  }
+
+  @Test public void testTextFileLogging() throws Exception
+  {
+    Logger log = new Logger(LogCategory.TEXT_FILE);
+
+    // Don't delegate to parent handlers to avoid unneccessary
+    // error logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
+
+    URI uri = File.createTempFile("openremote", null).toURI();
+
+    log.addFileLog(uri);
+
+    log.info("Write to file");
+
+    BufferedReader reader = new BufferedReader(new FileReader(new File(uri)));
+
+    String textLog = reader.readLine();
+
+    Assert.assertTrue(
+        textLog.contains("Write to file"),
+        "Got log line '" + textLog + "'"
+    );
+  }
+
+
+  @Test public void testTextFileLogFormatting() throws Exception
+  {
+    Logger log = new Logger(LogCategory.FORMAT_TEXT_FILE);
+
+    // Don't delegate to parent handlers to avoid unneccessary
+    // error logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
+
+    URI uri = File.createTempFile("openremote", null).toURI();
+
+    log.addFileLog(uri);
+
+    log.info("Write {0}", "something");
+
+    BufferedReader reader = new BufferedReader(new FileReader(new File(uri)));
+
+    String textLog = reader.readLine();
+
+    Assert.assertTrue(
+        textLog.contains("Write something"),
+        "Got log line '" + textLog + "'"
+    );
+  }
+
+  @Test public void testTextFileLogException() throws Exception
+  {
+    Logger log = new Logger(LogCategory.TEXT_FILE_EXCEPTION);
+
+    // Don't delegate to parent handlers to avoid unneccessary
+    // error logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
+
+    URI uri = File.createTempFile("openremote", null).toURI();
+
+    log.addFileLog(uri);
+
+    log.info("{0} {1} :", new LogFormatterTestException(), "exception", "is");
+
+    BufferedReader reader = new BufferedReader(new FileReader(new File(uri)));
+    StringWriter output = new StringWriter();
+    BufferedWriter bout = new BufferedWriter(output);
+
+    while (true)
+    {
+      String textLog = reader.readLine();
+
+      if (textLog == null)
+      {
+        break;
+      }
+
+      bout.write(textLog);
+    }
+
+    bout.close();
+
+    String content = output.getBuffer().toString();
+
+
+    Assert.assertTrue(content.contains("exception is :"), content);
+    Assert.assertTrue(content.contains("EXCEPTION: " + LogFormatterTestException.class.getSimpleName()));
+    Assert.assertTrue(content.contains("MESSAGE: <no message>"));
+    Assert.assertTrue(content.contains("CALLSTACK: " + LogFormatterTestException.class.getSimpleName()));
+    Assert.assertTrue(content.contains("-> " + this.getClass().getName()));
+  }
+
+  @Test public void testTextFileLogNestedExceptions() throws Exception
+  {
+    Logger log = new Logger(LogCategory.TEXT_FILE_NESTED_EXCEPTION);
+
+    // Don't delegate to parent handlers to avoid unneccessary
+    // error logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
+
+    URI uri = File.createTempFile("openremote", null).toURI();
+
+    log.addFileLog(uri);
+
+    LogFormatterTestException t1 = new LogFormatterTestException();
+    NullPointerException t2 = new NullPointerException("one two three");
+    OutOfMemoryError t3 = new OutOfMemoryError("bang!");
+    Exception e = new Exception("wrapping exception");
+    Error err = new Error("wrapping error");
+
+    t2.initCause(t1);
+    t3.initCause(t2);
+    e.initCause(t3);
+    err.initCause(e);
+
+    log.info("{0} {1} {2}:", err, "nested", "exception", "test");
+
+    BufferedReader reader = new BufferedReader(new FileReader(new File(uri)));
+    StringWriter output = new StringWriter();
+    BufferedWriter bout = new BufferedWriter(output);
+
+    while (true)
+    {
+      String textLog = reader.readLine();
+
+      if (textLog == null)
+      {
+        break;
+      }
+
+      bout.write(textLog);
+    }
+
+    bout.close();
+
+    String content = output.getBuffer().toString();
+
+    Assert.assertTrue(content.contains("INFO: nested exception test:"), content);
+    Assert.assertTrue(content.contains("ROOT EXCEPTION: " + LogFormatterTestException.class.getSimpleName()));
+    Assert.assertTrue(content.contains("MESSAGE: <no message>"));
+    Assert.assertTrue(content.contains("Wrapped by: " + NullPointerException.class.getSimpleName()));
+    Assert.assertTrue(content.contains("Message: one two three"));
+    Assert.assertTrue(content.contains("Wrapped by: " + OutOfMemoryError.class.getSimpleName()));
+    Assert.assertTrue(content.contains("Message: bang!"));
+    Assert.assertTrue(content.contains("Wrapped by: " + Exception.class.getSimpleName()));
+    Assert.assertTrue(content.contains("Message: wrapping exception"));
+    Assert.assertTrue(content.contains("Wrapped by: " + Error.class.getSimpleName()));
+    Assert.assertTrue(content.contains("Message: wrapping error"));
+    Assert.assertTrue(content.contains("CALLSTACK: " + LogFormatterTestException.class.getSimpleName()));
+    Assert.assertTrue(content.contains("-> " + this.getClass().getName()));
+  }
+
+  @Test public void testTextFileLogConfiguration() throws Exception
+  {
+    Logger log = new Logger(LogCategory.TEXT_FILE_CONFIG);
+
+    // Don't delegate to parent handlers to avoid unneccessary
+    // error logging caused by these tests...
+
+    log.logDelegate.setUseParentHandlers(false);
+
+    URI uri = File.createTempFile("openremote", null).toURI();
+
+    log.addFileLog(uri, 5, 20, false);
+
+    log.error("test config", new LogFormatterTestException());
+  }
 
 
   // Helper Classes -------------------------------------------------------------------------------
-
 
   /**
    * Minimal facade implementation that provides no API.
@@ -236,6 +442,11 @@ public class LogServiceTest
     CustomLogService()
     {
       super(LogCategory.CUSTOM);
+
+      // Don't delegate to parent handlers to avoid unneccessary
+      // error logging caused by these tests...
+
+      logDelegate.setUseParentHandlers(false);
     }
 
     CustomLogService(boolean noregister)
@@ -263,13 +474,34 @@ public class LogServiceTest
           }
       );
     }
+
+    NamedLogService(final String name, boolean register)
+    {
+      super(
+          new Hierarchy()
+          {
+            @Override public String getCanonicalLogHierarchyName()
+            {
+              return name;
+            }
+          },
+
+          register
+      );
+    }
   }
 
 
   enum LogCategory implements Hierarchy
   {
     CUSTOM("custom"),
-    TEST("test");
+    TEST("test"),
+    TEXT_FILE("text.file"),
+    FORMAT_TEXT_FILE("format.text.file"),
+    TEXT_FILE_EXCEPTION(TEXT_FILE.getCanonicalLogHierarchyName() + ".exception"),
+    TEXT_FILE_NESTED_EXCEPTION(TEXT_FILE.getCanonicalLogHierarchyName() + ".nested.exception"),
+    TEXT_FILE_CONFIG(TEXT_FILE.getCanonicalLogHierarchyName() + ".config");
+
 
     String hierarchy;
 
@@ -326,6 +558,11 @@ public class LogServiceTest
         "Expected level " + level + ", got " + lastLevel
       );
     }
+  }
+
+  private static class LogFormatterTestException extends Exception
+  {
+
   }
 
 }
