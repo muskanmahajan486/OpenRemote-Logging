@@ -45,9 +45,14 @@
  |  The OpenRemote project template may be extended by adding targets to the
  |  following extensions points:
  |
- |    -before-compile
- |    -before-unit-test-compile
- |    -before-unit-test
+ |    -before-compile, -after-compile
+ |    -before-unit-test-compile, -after-unit-test-compile
+ |    -before-unit-test, -after-unit-test
+ |
+ |  To add individual project targets to default target dependency graphs, create an
+ |  extension target such as:
+ |
+ |    <target name = "verify-results" extensionOf = "-after-unit-test">
  |
  |  Author: Juha Lindfors
  +-->
@@ -131,6 +136,14 @@
   <path id = "java.test.compile.classpath">
 
   </path>
+
+
+  <target name = "package" extensionOf = "-package-project"
+          depends = "clean, unit-test, -init-package">
+
+
+  </target>
+
 
 </project>
 

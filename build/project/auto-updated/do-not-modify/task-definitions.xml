@@ -165,7 +165,7 @@
       <!-- Create Cobertura unit test coverage report... -->
 
       <internal:cobertura-report
-          destdir = "${build.test.dir}/coverage-report"
+          destdir = "${build.test.coverage.dir}"
           datafile = "${build.test.dir}/instrumented-classes/cobertura-coverage.ser"
           srcdir = "${java.src.dir}"
           encoding = "UTF-8"/>
