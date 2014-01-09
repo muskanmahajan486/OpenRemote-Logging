@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Created-By: OpenRemote, Inc.
+Name: openremote-logging
+Specification-Title: OpenRemote Logging
+Specification-Version: ${api.version}
+Specification-Vendor: OpenRemote, Inc.
+Implementation-Title: OpenRemote Logging
+Implementation-Version: ${release.version}
+Implementation-Vendor: OpenRemote, Inc.
+
