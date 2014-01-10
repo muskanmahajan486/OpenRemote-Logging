@@ -155,6 +155,7 @@
     </copy>
 
     <zip basedir = "${build.package.dir}" destfile = "${output.dir}/openremote-logging-${release.version}.jar"/>
+
   </target>
 
 
