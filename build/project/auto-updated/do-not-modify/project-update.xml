@@ -28,8 +28,7 @@
  |
  |  Author: Juha Lindfors (juha@openremote.org)
  +-->
-<project name ="OpenRemote Project Update" basedir = "../../../.." default = "update"
-         xmlns:openremote = "namespace://build.repository.openremote.org/project/tasks">
+<project name ="OpenRemote Project Update" basedir = "../../../.." default = "update">
 
   <!--
    | Load local properties overriding other properties for values that
@@ -52,15 +51,20 @@
    +-->
   <property file = "${project.file.path}/default.properties"/>
 
-  <!--
-   | Resolve the directory path of an imported build file...
-   +-->
-  <dirname property = "import.basedir" file = "${ant.file.OpenRemote Project Update}"/>
 
   <!--
-   | Import customized tasks...
+   | Public helper macro for nested property expansion (from Ant FAQ)...
    +-->
-  <import file = "${import.basedir}/task-definitions.xml" as = "openremote-tasks"/>
+  <macrodef name = "propertycopy">
+    <attribute name = "name"/>
+    <attribute name = "from"/>
+
+    <sequential>
+      <property name="@{name}" value="${@{from}}"/>
+    </sequential>
+
+  </macrodef>
+
 
   <!--
    | Initialize preconditions. At minimum the properties 'project.file.path',
@@ -189,7 +193,7 @@
       <contains string = "${absolute.java.runtime.path}" substring = "${absolute.basedir}"/>
     </condition>
 
-    <openremote:propertycopy
+    <propertycopy
         name = "target.java.runtime.dir"
         from = "java.${java.target.version}.runtime.directory"/>
 
