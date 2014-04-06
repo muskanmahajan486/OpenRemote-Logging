@@ -780,6 +780,10 @@ public abstract class LogService
         case STANDARD_OUTPUT:
 
           createStandardOutput(config);
+
+        default:
+
+          throw new Error("Unimplemented log consumer option " + logType);
       }
     }
 
@@ -843,7 +847,7 @@ public abstract class LogService
 
       catch (UnsupportedEncodingException e)
       {
-          // TODO
+        throw new Error(e.getMessage(), e); // TODO
       }
 
       catch (IOException e)
